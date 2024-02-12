@@ -35,6 +35,17 @@ async function getInstagramFollowing(username, token) {
     return response.data.data;
 }
 
+async function authenticateWithInstagram(code) {
+    const response = await axios.post('https://api.instagram.com/oauth/access_token', {
+        client_id: 'your-client-id',
+        client_secret: 'your-client-secret',
+        grant_type: 'authorization_code',
+        redirect_uri: 'your-redirect-uri',
+        code: code
+    });
+    return response.data.access_token;
+}
+
 app.post('/get-nonfollowers', async (req, res) => {
     const username = req.body.username;
 
@@ -44,7 +55,7 @@ app.post('/get-nonfollowers', async (req, res) => {
         const following = await getInstagramFollowing(username, token);
 
         // Process data to find non-followers
-        const nonFollowers = following.filter(user => !followers.includes(user));
+        const nonFollowers = following.filter(user => !followers.some(follower => follower.id === user.id));
 
         res.status(200).json({ nonFollowers: nonFollowers });
     } catch (error) {
